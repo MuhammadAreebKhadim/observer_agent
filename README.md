@@ -1,29 +1,40 @@
 # Observer Agent MVP
 
-## Files
 
-- `recording.py` - Core screen recording functionality
-- `summary.py` - Content analysis and text extraction
-  - OCR for text extraction (pytesseract, easyocr, trocr)
-  - Vision LLM integration for intelligent analysis
-- `bootstrap.py` - Automated setup and dependency management
-- `requirements.txt` - Python package dependencies
+[![Python](https://img.shields.io/badge/Python-3.12%2B-blue?logo=python)](https://www.python.org/) 
 
-## Setup
 
-1. **Clone the repository**:
-   ```bash
-   git clone <repository-url>
-   cd observer-agent-mvp
-   ```
+## 📁 Project Structure
 
-2. **Run the bootstrap installer**:
-   ```bash
-   python bootstrap.py install
-   ```
+- `bootstrap.py` — Automated setup and dependency management
+- `recording.py` — Core screen recording functionality
+- `recordings/` — Output directory for saved recordings
+- `requirements.txt` — Python package dependencies
 
-   This will:
-   - Create a virtual environment automatically
-   - Install all required Python dependencies
-   - Handle system-specific setup (e.g., Wayland dependencies)
-   - Install wf-recorder for Linux Wayland users
+### 📋 ToDo's
+
+- `summarize.py` — Use text LLM to summarize the recording
+- `recall.py` — Use text LLM to recall the recording
+
+---
+
+## ⚡ Quickstart
+
+### 1. Clone the Repository
+
+```bash
+git clone <repository-url>
+cd observer-agent-mvp
+```
+
+### 2. Run the Bootstrap Installer
+
+```bash
+python bootstrap.py install
+```
+
+This will:
+- Create a virtual environment automatically
+- Install all required Python dependencies
+- Handle system-specific setup (e.g., Wayland dependencies)
+- Install `wf-recorder` for Linux Wayland users
