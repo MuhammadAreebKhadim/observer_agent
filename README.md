@@ -13,7 +13,8 @@
 
 ### 📋 ToDo's
 
-- `summarize.py` — Use text LLM to summarize the recording
+- `summarize_and_insert_logs.py` — Use text LLM to summarize the recording and insert the logs
+- `logs/` — folder to store extracted relevent information from the recording
 - `recall.py` — Use text LLM to recall the recording
 
 ---
