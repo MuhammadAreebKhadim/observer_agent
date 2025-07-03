@@ -1,0 +1,6 @@
+observer_agent_mvp_recorder.egg-info/
+venv/
+.venv/
+env/
+.env/
+/recordings/

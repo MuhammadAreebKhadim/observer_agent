@@ -1,0 +1,7 @@
+# No external Python packages required for recording with ffmpeg (system dependency)
+# For future summarization, add packages like openai, requests, etc. 
+setuptools
+mss
+opencv-python
+numpy
+# For Wayland users: install wf-recorder via your system package manager (e.g., sudo apt install wf-recorder) 
