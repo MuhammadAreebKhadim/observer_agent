@@ -28,7 +28,6 @@
 
 ### 📋 ToDo's
 
-- `summarize_and_insert_logs.py` — Use text LLM to summarize the recording and insert the logs
 - `recall.py` — Use text LLM to recall the recording
 
 ---
