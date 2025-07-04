@@ -56,11 +56,11 @@ except ImportError:
 from setuptools import setup, find_packages
 
 # 2. Install Python dependencies
-PY_DEPS = ["mss", "opencv-python", "numpy", "setuptools", "obs-websocket-py"]
+# NEW: Install from requirements.txt
 try:
-    run([sys.executable, "-m", "pip", "install"] + PY_DEPS)
+    run([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
 except Exception as e:
-    print("[ERROR] Failed to install Python dependencies:", e)
+    print("[ERROR] Failed to install Python dependencies from requirements.txt:", e)
     sys.exit(1)
 
 # 3. Install system dependency if on Wayland + Linux + apt
@@ -108,7 +108,6 @@ setup(
     description="Cross-platform screen recording tool for observer-agent-mvp (supports X11, Wayland, Windows, macOS, and OBS Studio)",
     author="Your Name",
     packages=find_packages(),
-    install_requires=PY_DEPS,
     entry_points={
         'console_scripts': [
             'screen-recorder=recording:main',
