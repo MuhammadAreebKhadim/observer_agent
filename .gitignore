@@ -4,3 +4,7 @@ venv/
 env/
 .env/
 /recordings/
+/logs/
+scripts/__pycache__/extract_image_from_video.cpython-312.pyc
+__pycache__/config.cpython-312.pyc
+.env

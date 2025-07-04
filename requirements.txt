@@ -4,4 +4,6 @@ setuptools
 mss
 opencv-python
 numpy
+groq
 # For Wayland users: install wf-recorder via your system package manager (e.g., sudo apt install wf-recorder) 
+python-dotenv 

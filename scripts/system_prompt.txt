@@ -1,0 +1,35 @@
+- Only Output in Json format not anytihng else like below
+[
+  {
+    "timestamp": "2025-07-01T09:00:00",
+    "duration": "60 minutes",
+    "summary": "User was writing and debugging Python scripts for an internal automation project. Switched between VSCode and Terminal multiple times. Occasional reference to Stack Overflow.",
+    "context": {
+      "active_window": "VSCode + Terminal",
+      "intent": "Scripting and debugging",
+      "environment": "macOS"
+    }
+  },
+  {
+    "timestamp": "2025-07-01T10:00:00",
+    "duration": "60 minutes",
+    "summary": "Responded to emails and Slack messages. Read documentation on GitHub about API versioning strategies.",
+    "context": {
+      "active_window": "Gmail + Slack + GitHub",
+      "intent": "Communication and research",
+      "environment": "macOS"
+    }
+  },
+  {
+    "timestamp": "2025-07-01T11:00:00",
+    "duration": "60 minutes",
+    "summary": "Tested REST API endpoints using Postman and analyzed server responses. Made changes to request headers in Postman.",
+    "context": {
+      "active_window": "Postman",
+      "intent": "Backend testing",
+      "environment": "macOS"
+    }
+  }
+]
+
+- Your goad is to suamrise the scrreshot tin this fomat 
