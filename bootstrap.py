@@ -101,6 +101,39 @@ If you do not see the gear icon, let your system administrator know or consult y
     else:
         print("\n[WARNING] Could not find apt. Please install wf-recorder manually for your distribution.")
 
+# --- GIT PRE-PUSH HOOK SETUP ---
+def setup_pre_push_hook():
+    hooks_dir = os.path.join(os.getcwd(), ".git", "hooks")
+    pre_push_path = os.path.join(hooks_dir, "pre-push")
+    hook_content = '''#!/bin/sh
+
+# Pre-push hook to prevent pushing from main or master branch
+
+current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+
+if [ "$current_branch" = "main" ] || [ "$current_branch" = "master" ]; then
+    echo "❌ ERROR: Pushing from $current_branch branch is not allowed!"
+    echo "Please create a feature branch and push from there instead."
+    exit 1
+fi
+
+exit 0
+'''
+    if not os.path.exists(pre_push_path):
+        try:
+            os.makedirs(hooks_dir, exist_ok=True)
+            with open(pre_push_path, "w") as f:
+                f.write(hook_content)
+            os.chmod(pre_push_path, 0o755)
+            print("[INFO] Git pre-push hook created to block pushes from main/master branch.")
+        except Exception as e:
+            print(f"[WARNING] Could not create pre-push hook: {e}")
+    else:
+        print("[INFO] Git pre-push hook already exists.")
+
+# Call the setup function early in the script
+setup_pre_push_hook()
+
 # 4. Standard setuptools setup
 setup(
     name="observer-agent-mvp-recorder",
