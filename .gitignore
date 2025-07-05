@@ -8,8 +8,4 @@ env/
 scripts/__pycache__/extract_image_from_video.cpython-312.pyc
 __pycache__/config.cpython-312.pyc
 .env
-scripts/recall/__pycache__/__main__.cpython-312.pyc
-scripts/recall/__pycache__/preprocess.cpython-312.pyc
-scripts/recall/__pycache__/system_prompt.cpython-312.pyc
-scripts/recall/__pycache__/tool_schema.cpython-312.pyc
-scripts/recall/__pycache__/tools.cpython-312.pyc
+scripts/recall/__pycache__/
