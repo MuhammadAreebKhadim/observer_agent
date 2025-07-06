@@ -67,5 +67,9 @@ def start_screen_recording(duration_seconds=10):
             out.release()
             print(f"Recording saved: {output_file}")
 
+def main():
+    """Console‐script entry point."""
+    start_screen_recording()
+
 if __name__ == "__main__":
-    start_screen_recording() 
+    main()
