@@ -1,0 +1,129 @@
+\documentclass{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{hyperref}
+\usepackage{listings}
+\lstset{
+	language=Python,
+	basicstyle=\ttfamily\small,
+	keywordstyle=\bfseries,
+	stringstyle=\itshape,
+	commentstyle=\itshape,
+	numbers=none,
+	frame=single,
+	breaklines=true,
+	showstringspaces=false
+}
+\begin{document}
+	
+	\section*{Setting Up \texttt{observer-agent-mvp} on Windows}
+	
+	This guide shows how to get the project running end‐to‐end:
+	
+	\begin{enumerate}
+		\item Create and activate a virtual environment.
+		\item Patch \texttt{bootstrap.py} for Windows.
+		\item Install dependencies.
+		\item Adjust \texttt{auto.py} invocations to use the venv interpreter.
+		\item Ensure the \texttt{recall} module finds \texttt{config.py}.
+		\item Fix console‐script entry points and add \texttt{main()}.
+	\end{enumerate}
+	
+	\subsection*{1. Virtual Environment}
+	
+	\begin{lstlisting}[frame=none]
+		python -m venv .venv
+		.\.venv\Scripts\Activate.bat
+	\end{lstlisting}
+	
+	\subsection*{2. Patch \texttt{bootstrap.py}}
+	
+	In the \texttt{setup(…)} call, change:
+	\begin{lstlisting}[frame=none]
+		packages=find_packages(),
+		entry_points={
+			'console_scripts': [
+			'screen-recorder=recording:main',
+			],
+		},
+	\end{lstlisting}
+	to:
+	\begin{lstlisting}[frame=none]
+		packages=find_packages() + ['scripts'],
+		entry_points={
+			'console_scripts': [
+			'screen-recorder=scripts.recording:main',
+			],
+		},
+	\end{lstlisting}
+	Also, create an empty file:
+	\begin{lstlisting}[frame=none]
+		scripts/__init__.py
+	\end{lstlisting}
+	
+	\subsection*{3. Install Requirements}
+	
+	\begin{lstlisting}[frame=none]
+		pip install -r requirements.txt
+	\end{lstlisting}
+	
+	\subsection*{4. Update \texttt{auto.py}}
+	
+	At the top, add \texttt{import sys}.  
+	Replace every
+	\begin{lstlisting}[frame=none]
+		subprocess.run(['python3', script_path])
+	\end{lstlisting}
+	with
+	\begin{lstlisting}[frame=none]
+		subprocess.run([sys.executable, script_path], check=True)
+	\end{lstlisting}
+	and similarly adjust any
+	\begin{lstlisting}[frame=none]
+		cmd = ['python3', script_path, ...]
+	\end{lstlisting}
+	to
+	\begin{lstlisting}[frame=none]
+		cmd = [sys.executable, script_path, ...]
+	\end{lstlisting}
+	
+	\subsection*{5. Running the \texttt{recall} Module}
+	
+	Always invoke from the project root so that \texttt{config.py} is on the path:
+	\begin{lstlisting}[frame=none]
+		python -m scripts.recall
+	\end{lstlisting}
+	
+	\subsection*{6. Bootstrap \& Recording Fix}
+	
+	After installing via:
+	\begin{lstlisting}[frame=none]
+		python bootstrap.py install
+	\end{lstlisting}
+	you will be prompted:
+	\begin{lstlisting}[frame=none]
+		Would you like to run the screen recorder now? (y/N):
+	\end{lstlisting}
+	To have \texttt{scripts/recording.py} export a \texttt{main()} for the console‐script, add at the bottom of \texttt{recording.py}:
+	\begin{lstlisting}
+		def main():
+		"""Console-script entry point."""
+		start_screen_recording()
+		
+		if __name__ == "__main__":
+		main()
+	\end{lstlisting}
+	
+	Reinstall to pick up the change:
+	\begin{lstlisting}[frame=none]
+		python bootstrap.py install
+	\end{lstlisting}
+	
+	Now:
+	\begin{lstlisting}[frame=none]
+		screen-recorder
+	\end{lstlisting}
+	will launch the recorder immediately after you press \texttt{y}.
+	
+\end{document}
