@@ -1,7 +1,23 @@
+from typing import Tuple, Optional, Dict
 import re
 from datetime import datetime, timedelta
 
-def preprocess_user_query(user_input):
+def preprocess_user_query(text: str) -> Tuple[Optional[str], Optional[Dict]]:
+    """
+    Inspect the user’s query and decide if it maps directly to one of our tools.
+    Returns (tool_name, tool_args) or (None, None) if no shortcut applies.
+    """
+
+    t = text.strip().lower()
+
+    # ── Shortcut: “logs for today” ────────────────────────────────
+    if "logs for today" in t or "logs today" in t or "show me today's logs" in t:
+        # since = midnight of the current day
+        today_midnight = datetime.now().replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        return "search_logs_timewindow", {"since": today_midnight}
+        
     lowered = user_input.lower()
     today = datetime.now()
     

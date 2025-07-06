@@ -7,6 +7,12 @@ from .system_prompt import system_prompt
 from .preprocess import preprocess_user_query
 from .tool_schema import tools
 import json
+from .preprocess import preprocess_user_query
+from .tools import search_logs, search_logs_timewindow
+from datetime import datetime
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 
 def _cast_tool_arguments(tool_arguments, tool_name):
     return tool_arguments
@@ -225,3 +231,70 @@ def main():
 
 if __name__ == "__main__":
     main() 
+
+def recall_query(user_input: str) -> str:
+    logging.debug(f"recall_query called with: {user_input!r}")
+
+    # 0) Preprocess step
+    tool_name, tool_args = preprocess_user_query(user_input)
+    logging.debug(f"preprocess → {tool_name}, {tool_args}")
+
+    if tool_name == 'search_logs':
+        results = search_logs(tool_args["query"])
+        resp = json.dumps(results, indent=2)
+        logging.debug(f"search_logs response: {resp}")
+        return resp or "(no logs found)"
+
+    if tool_name == 'search_logs_timewindow':
+        since = tool_args["since"]
+        if isinstance(since, str):
+            since = datetime.fromisoformat(since)
+        results = search_logs_timewindow(since)
+        resp = json.dumps(results, indent=2)
+        logging.debug(f"search_logs_timewindow response: {resp}")
+        return resp or "(no logs found)"
+
+    # 1) Full LLM + function-calling path
+    client = Groq(api_key=GROQ_API_KEY)
+    messages = [
+        {"role": "system",  "content": system_prompt},
+        {"role": "user",    "content": user_input},
+    ]
+    resp1 = client.chat.completions.create(
+        model="meta-llama/llama-4-scout-17b-16e-instruct",
+        messages=messages,
+        tools=tools,
+        tool_choice="auto"
+    )
+    msg1 = resp1.choices[0].message
+    logging.debug(f"LLM first pass message: {msg1}")
+
+    # 2) Handle function_call
+    if hasattr(msg1, "function_call") and msg1.function_call:
+        fc = msg1.function_call
+        logging.debug(f"Function call requested: {fc.name} with args {fc.arguments}")
+        args = json.loads(fc.arguments)
+        args = _cast_tool_arguments(args, fc.name)
+
+        # dispatch …
+        # <same code as before to populate `result`>
+
+        # assemble messages …
+        # <same assembly code>
+
+        resp2 = client.chat.completions.create(
+            model="meta-llama/llama-4-scout-17b-16e-instruct",
+            messages=messages,
+        )
+        final = resp2.choices[0].message.content or ""
+        logging.debug(f"LLM final pass content: {final!r}")
+        return final or "(no summary returned)"
+
+    # 3) No function_call → just content
+    content = msg1.content or ""
+    logging.debug(f"No function_call, returning content: {content!r}")
+    return content or "(no content returned)"
+
+
+
+
