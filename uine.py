@@ -8,6 +8,7 @@ import customtkinter as ctk
 import tkinter as tk
 from tkinter import messagebox
 from tkinter.scrolledtext import ScrolledText
+import shutil
 
 
 from scripts.recording import start_screen_recording
@@ -128,14 +129,21 @@ class ObserverAgentApp(ctk.CTk):
         threading.Thread(target=self._threaded_chat, args=(user_msg,), daemon=True).start()
 
     def _threaded_chat(self, msg):
+        # Indicate to the user that the AI is processing
         self._append_chat("AI: thinking...\n", INFO)
         try:
+            # Run the recall query
             reply = recall_query(msg)
             if not reply.strip():
                 reply = "(no response)"
+            # Replace the “thinking…” line with the actual reply
             self._replace_last_ai("AI: " + reply + "\n", SUCCESS)
-        except Exception as e:
-            self._replace_last_ai(f"AI: Error: {e}\n", ERROR)
+        except Exception:
+            # If anything goes wrong, capture the full traceback
+            import traceback
+            tb = traceback.format_exc()
+            # Display the full traceback in the chat pane in red
+            self._replace_last_ai(f"AI: Error:\n{tb}\n", ERROR)
 
 
     def _append_chat(self, text, color):
