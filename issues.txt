@@ -1,0 +1,12 @@
+python -m venv .venv
+.\.venv\Scripts\Activate.bat
+
+Change bootstrap.py, 
+
+pip install -r requirements.txt
+
+then auto.py
+
+the use the recall from the main script
+
+fix for bootstrap and recording.py so that after bootstrap directly press y for recording.

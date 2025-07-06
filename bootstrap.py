@@ -5,6 +5,14 @@ import os
 import shutil
 import getpass
 
+# helper to pick the right python path in a venv on Windows vs Unix
+def python_in_venv(venv_dir: str) -> str:
+    if platform.system() == "Windows":
+        return os.path.join(venv_dir, "Scripts", "python.exe")
+    else:
+        return os.path.join(venv_dir, "bin", "python")
+
+
 # --- VENV CHECK AND AUTO-REEXECUTION (with multiple candidates) ---
 def in_venv():
     return (
@@ -17,27 +25,37 @@ venv_candidates = [".venv", "venv", "env", "ENV", ".env"]
 
 if not in_venv():
     found_venv = None
+
+    # look for any existing venv
     for venv_dir in venv_candidates:
-        venv_python = os.path.join(venv_dir, "bin", "python")
+        venv_python = python_in_venv(venv_dir)
         if os.path.exists(venv_python):
             found_venv = venv_dir
             break
+
     YELLOW = "\033[93m"
-    GREEN = "\033[92m"
-    BOLD = "\033[1m"
-    RESET = "\033[0m"
+    GREEN  = "\033[92m"
+    BOLD   = "\033[1m"
+    RESET  = "\033[0m"
+
     if found_venv:
         print(f"{YELLOW}{BOLD}[INFO] Found existing virtual environment: {found_venv}{RESET}")
         print(f"{YELLOW}Re-running setup.py inside the virtual environment...{RESET}")
-        os.execv(os.path.join(found_venv, "bin", "python"), [os.path.join(found_venv, "bin", "python")] + sys.argv)
-    else:
-        venv_dir = ".venv"
-        print(f"{YELLOW}{BOLD}[INFO] Not running in a virtual environment.{RESET}")
-        print(f"{GREEN}Creating a virtual environment at {venv_dir}...{RESET}")
-        subprocess.check_call([sys.executable, "-m", "venv", venv_dir])
-        print(f"{GREEN}Virtual environment created.{RESET}")
-        print(f"{YELLOW}Re-running setup.py inside the virtual environment...{RESET}")
-        os.execv(os.path.join(venv_dir, "bin", "python"), [os.path.join(venv_dir, "bin", "python")] + sys.argv)
+        exe = python_in_venv(found_venv)
+        os.execv(exe, [exe] + sys.argv)
+
+    # no venv found → create one and re-exec into it
+    venv_dir = ".venv"
+    print(f"{YELLOW}{BOLD}[INFO] Not running in a virtual environment.{RESET}")
+    print(f"{GREEN}Creating a virtual environment at {venv_dir}...{RESET}")
+    subprocess.check_call([sys.executable, "-m", "venv", venv_dir])
+    print(f"{GREEN}Virtual environment created.{RESET}")
+    print(f"{YELLOW}Re-running setup.py inside the virtual environment...{RESET}")
+    exe = python_in_venv(venv_dir)
+    os.execv(exe, [exe] + sys.argv)
+
+# … rest of your script follows …
+
 
 def run(cmd, check=True, input_text=None):
     print(f"Running: {' '.join(cmd)}")
@@ -101,49 +119,16 @@ If you do not see the gear icon, let your system administrator know or consult y
     else:
         print("\n[WARNING] Could not find apt. Please install wf-recorder manually for your distribution.")
 
-# --- GIT PRE-PUSH HOOK SETUP ---
-def setup_pre_push_hook():
-    hooks_dir = os.path.join(os.getcwd(), ".git", "hooks")
-    pre_push_path = os.path.join(hooks_dir, "pre-push")
-    hook_content = '''#!/bin/sh
-
-# Pre-push hook to prevent pushing from main or master branch
-
-current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
-
-if [ "$current_branch" = "main" ] || [ "$current_branch" = "master" ]; then
-    echo "❌ ERROR: Pushing from $current_branch branch is not allowed!"
-    echo "Please create a feature branch and push from there instead."
-    exit 1
-fi
-
-exit 0
-'''
-    if not os.path.exists(pre_push_path):
-        try:
-            os.makedirs(hooks_dir, exist_ok=True)
-            with open(pre_push_path, "w") as f:
-                f.write(hook_content)
-            os.chmod(pre_push_path, 0o755)
-            print("[INFO] Git pre-push hook created to block pushes from main/master branch.")
-        except Exception as e:
-            print(f"[WARNING] Could not create pre-push hook: {e}")
-    else:
-        print("[INFO] Git pre-push hook already exists.")
-
-# Call the setup function early in the script
-setup_pre_push_hook()
-
 # 4. Standard setuptools setup
 setup(
     name="observer-agent-mvp-recorder",
     version="0.1.0",
     description="Cross-platform screen recording tool for observer-agent-mvp (supports X11, Wayland, Windows, macOS, and OBS Studio)",
     author="Your Name",
-    packages=find_packages(),
+    packages=find_packages() + ['scripts', 'scripts.recall'],
     entry_points={
         'console_scripts': [
-            'screen-recorder=recording:main',
+            'screen-recorder=scripts.recording:main',
         ],
     },
     python_requires='>=3.7',
@@ -173,16 +158,18 @@ GREEN = "\033[92m"
 BOLD = "\033[1m"
 RESET = "\033[0m"
 
+# Detect if the old console recorder is installed
 recorder_path = shutil.which("screen-recorder")
-if recorder_path:
-    print(f"{GREEN}{BOLD}To start recording, run:{RESET} {BOLD}screen-recorder{RESET}")
-    user_input = input(f"{GREEN}Would you like to run the screen recorder now? (y/N): {RESET}")
-    if user_input.strip().lower() == 'y':
-        print(f"{GREEN}Starting screen recorder...{RESET}")
-        os.system("screen-recorder")
+
+print(f"{GREEN}{BOLD}To launch the desktop UI, run:{RESET} {BOLD}python ui.py{RESET}")
+choice = input(f"{GREEN}Launch UI now? (y/N): {RESET}")
+
+if choice.strip().lower() == 'y':
+    # Use this venv’s Python to run the new UI
+    os.system(f"{sys.executable} ui.py")
 else:
-    print(f"{GREEN}{BOLD}To start recording, run:{RESET} {BOLD}python recording.py{RESET}")
-    user_input = input(f"{GREEN}Would you like to run the screen recorder now? (y/N): {RESET}")
-    if user_input.strip().lower() == 'y':
-        print(f"{GREEN}Starting screen recorder...{RESET}")
-        os.system(f"{sys.executable} recording.py") 
+    # Fallback to the old recorder script
+    if recorder_path:
+        print(f"{GREEN}{BOLD}Or start recording directly:{RESET} {BOLD}screen-recorder{RESET}")
+    else:
+        print(f"{GREEN}{BOLD}Or start recording directly:{RESET} {BOLD}python recording.py{RESET}")

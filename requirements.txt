@@ -5,6 +5,7 @@ mss
 opencv-python
 numpy
 groq
+gradio
 # For Wayland users: install wf-recorder via your system package manager (e.g., sudo apt install wf-recorder) 
 python-dotenv
 python-dateutil 
