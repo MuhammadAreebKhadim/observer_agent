@@ -1,3 +1,5 @@
+# summarize_and_insert_logs.py
+
 import os
 import sys
 import re
@@ -59,8 +61,9 @@ def main(image_path, session_log_path=None, session_id=None):
         }]
     else:
         if not GROQ_API_KEY:
-            print("[ERROR] GROQ_API_KEY not set.")
+            print("[ERROR] GROQ_API_KEY not set.", file=sys.stderr)
             sys.exit(1)
+
         data_url = image_to_data_url(image_path)
         client = Groq(api_key=GROQ_API_KEY)
         # → Non‐streaming call for clean JSON output
@@ -78,10 +81,11 @@ def main(image_path, session_log_path=None, session_id=None):
             top_p=1,
             stream=False,  # turn off streaming
         )
+
         # Grab the full JSON response
         output = response.choices[0].message.content or ""
-        print(output)    # still print it for debugging
-
+        # for debugging, write to stderr only
+        print(output, file=sys.stderr)
 
         # ── 1) Strip out any <|…|> tokens ──
         output = re.sub(r'<\|header_start\|>.*?<\|header_end\|>', '', output, flags=re.DOTALL)
@@ -108,7 +112,7 @@ def main(image_path, session_log_path=None, session_id=None):
             if not isinstance(parsed, list):
                 parsed = [parsed]
         except json.JSONDecodeError as e:
-            print(f"\n[INFO] Could not parse JSON payload: {e}")
+            print(f"[INFO] Could not parse JSON payload: {e}", file=sys.stderr)
             cleaned = output.replace('\n', ' ').strip()
             parsed = [{"raw_summary": cleaned}]
 
@@ -130,9 +134,9 @@ def main(image_path, session_log_path=None, session_id=None):
     # --- insert into Snowflake ---
     try:
         insert_logs(parsed)
-        print(f"[INFO] Inserted {len(parsed)} rows into Snowflake.")
+        print(f"[INFO] Inserted {len(parsed)} rows into Snowflake.", file=sys.stderr)
     except Exception as e:
-        print(f"[WARNING] Snowflake insert failed: {e}")
+        print(f"[WARNING] Snowflake insert failed: {e}", file=sys.stderr)
 
     # --- then save locally as before ---
     if session_log_path:
@@ -147,17 +151,17 @@ def main(image_path, session_log_path=None, session_id=None):
         session_data.extend(parsed)
         with open(session_log_path, "w", encoding="utf-8") as f:
             json.dump(session_data, f, indent=2)
-        print(f"\n[INFO] Appended summary to session log {session_log_path}")
+        print(f"[INFO] Appended summary to session log {session_log_path}", file=sys.stderr)
     else:
         out_path = os.path.join(LOGS_DIR, f"{base}.json")
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(parsed, f, indent=2)
-        print(f"\n[INFO] Saved summary to {out_path}")
+        print(f"[INFO] Saved summary to {out_path}", file=sys.stderr)
 
 if __name__ == "__main__":
     args = sys.argv[1:]
     if len(args) in (1, 2, 3):
         main(*args)
     else:
-        print(f"Usage: python {os.path.basename(__file__)} <image_path> [session_log_path] [session_id]")
+        print(f"Usage: python {os.path.basename(__file__)} <image_path> [session_log_path] [session_id]", file=sys.stderr)
         sys.exit(1)

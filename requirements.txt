@@ -10,4 +10,8 @@ python-dotenv
 python-dateutil
 snowflake-connector-python
 customtkinter
-tkinter            
+tkinter
+anthropic
+openai
+cursor-so-sdk
+takashi-sdk            
